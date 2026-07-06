@@ -1,0 +1,112 @@
+import { Router } from "express";
+import { db, vehiclesTable } from "@workspace/db";
+import { eq, ilike, and } from "drizzle-orm";
+import { CreateVehicleBody, UpdateVehicleBody, ListVehiclesQueryParams } from "@workspace/api-zod";
+
+const router = Router();
+
+function formatVehicle(v: any) {
+  return {
+    id: v.id,
+    make: v.make,
+    model: v.model,
+    year: v.year,
+    category: v.category,
+    dailyRate: parseFloat(v.dailyRate),
+    seats: v.seats,
+    transmission: v.transmission,
+    fuelType: v.fuelType,
+    rating: v.rating,
+    imageUrl: v.imageUrl ?? null,
+    isAvailable: v.isAvailable,
+    licensePlate: v.licensePlate,
+    description: v.description ?? null,
+  };
+}
+
+router.get("/", async (req, res) => {
+  const parsed = ListVehiclesQueryParams.safeParse(req.query);
+  const params = parsed.success ? parsed.data : {};
+
+  const conditions: any[] = [];
+  if (params.category) {
+    conditions.push(eq(vehiclesTable.category, params.category as any));
+  }
+  if (params.available !== undefined) {
+    conditions.push(eq(vehiclesTable.isAvailable, params.available));
+  }
+
+  let vehicles;
+  if (conditions.length > 0) {
+    vehicles = await db.select().from(vehiclesTable).where(and(...conditions));
+  } else {
+    vehicles = await db.select().from(vehiclesTable);
+  }
+
+  if (params.search) {
+    const search = params.search.toLowerCase();
+    vehicles = vehicles.filter(v =>
+      v.make.toLowerCase().includes(search) ||
+      v.model.toLowerCase().includes(search) ||
+      v.category.toLowerCase().includes(search)
+    );
+  }
+
+  return res.json(vehicles.map(formatVehicle));
+});
+
+router.post("/", async (req, res) => {
+  const parsed = CreateVehicleBody.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: "Invalid input" });
+  }
+  const data = parsed.data;
+
+  const [vehicle] = await db.insert(vehiclesTable).values({
+    ...data,
+    dailyRate: String(data.dailyRate),
+    isAvailable: data.isAvailable ?? true,
+    rating: 4.5,
+  } as any).returning();
+
+  return res.status(201).json(formatVehicle(vehicle));
+});
+
+router.get("/:id", async (req, res) => {
+  const id = parseInt(req.params.id);
+  if (isNaN(id)) return res.status(400).json({ error: "Invalid id" });
+
+  const [vehicle] = await db.select().from(vehiclesTable).where(eq(vehiclesTable.id, id)).limit(1);
+  if (!vehicle) return res.status(404).json({ error: "Vehicle not found" });
+
+  return res.json(formatVehicle(vehicle));
+});
+
+router.patch("/:id", async (req, res) => {
+  const id = parseInt(req.params.id);
+  if (isNaN(id)) return res.status(400).json({ error: "Invalid id" });
+
+  const parsed = UpdateVehicleBody.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "Invalid input" });
+
+  const data = parsed.data;
+  const updateData: any = { ...data };
+  if (data.dailyRate !== undefined) {
+    updateData.dailyRate = String(data.dailyRate);
+  }
+
+  const [vehicle] = await db.update(vehiclesTable).set(updateData).where(eq(vehiclesTable.id, id)).returning();
+  if (!vehicle) return res.status(404).json({ error: "Vehicle not found" });
+
+  return res.json(formatVehicle(vehicle));
+});
+
+router.delete("/:id", async (req, res) => {
+  const id = parseInt(req.params.id);
+  if (isNaN(id)) return res.status(400).json({ error: "Invalid id" });
+
+  await db.delete(vehiclesTable).where(eq(vehiclesTable.id, id));
+  return res.json({ success: true, message: "Vehicle deleted" });
+});
+
+export default router;
