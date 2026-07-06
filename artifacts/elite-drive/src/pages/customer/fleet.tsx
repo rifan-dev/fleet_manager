@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useListVehicles } from "@workspace/api-client-react";
 import { VehicleCard } from "@/components/vehicle-card";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "react-day-picker";
 
 const CATEGORIES = ["All", "Sedan", "SUV", "Luxury", "Sports", "Electric", "Van"];
 
@@ -13,13 +13,10 @@ export default function Fleet() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [category, setCategory] = useState("All");
 
-  // Simple debounce for search
-  import("react").then((React) => {
-    React.useEffect(() => {
-      const t = setTimeout(() => setDebouncedSearch(search), 300);
-      return () => clearTimeout(t);
-    }, [search]);
-  });
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
 
   const queryParams: any = {};
   if (category !== "All") queryParams.category = category;
