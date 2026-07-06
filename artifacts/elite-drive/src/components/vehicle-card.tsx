@@ -42,8 +42,8 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
           </div>
           <div className="text-right">
             <div className="flex items-baseline text-primary">
-              <span className="text-sm font-medium mr-1">$</span>
-              <span className="text-2xl font-bold tracking-tight">{vehicle.dailyRate}</span>
+              <span className="text-sm font-medium mr-1">₹</span>
+              <span className="text-2xl font-bold tracking-tight">{Number(vehicle.dailyRate).toLocaleString("en-IN")}</span>
             </div>
             <p className="text-xs text-muted-foreground">/ day</p>
           </div>

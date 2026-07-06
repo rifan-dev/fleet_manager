@@ -68,12 +68,9 @@ export type VehicleCategory = typeof VehicleCategory[keyof typeof VehicleCategor
 
 
 export const VehicleCategory = {
-  Sedan: 'Sedan',
-  SUV: 'SUV',
   Luxury: 'Luxury',
-  Sports: 'Sports',
-  Electric: 'Electric',
-  Van: 'Van',
+  Premium: 'Premium',
+  Normal: 'Normal',
 } as const;
 
 export type VehicleTransmission = typeof VehicleTransmission[keyof typeof VehicleTransmission];

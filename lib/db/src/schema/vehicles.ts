@@ -2,7 +2,7 @@ import { pgTable, text, serial, boolean, timestamp, pgEnum, integer, numeric, re
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
-export const categoryEnum = pgEnum("category", ["Sedan", "SUV", "Luxury", "Sports", "Electric", "Van"]);
+export const categoryEnum = pgEnum("category", ["Luxury", "Premium", "Normal"]);
 export const transmissionEnum = pgEnum("transmission", ["Automatic", "Manual"]);
 
 export const vehiclesTable = pgTable("vehicles", {

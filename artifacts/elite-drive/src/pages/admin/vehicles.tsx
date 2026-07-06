@@ -135,7 +135,7 @@ export default function AdminVehicles() {
                     </td>
                     <td className="py-3 px-4"><Badge variant="outline">{v.category}</Badge></td>
                     <td className="py-3 px-4 font-mono">{v.licensePlate}</td>
-                    <td className="py-3 px-4 font-medium">${v.dailyRate}</td>
+                    <td className="py-3 px-4 font-medium">₹{Number(v.dailyRate).toLocaleString("en-IN")}</td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
                         <Switch 
@@ -194,8 +194,8 @@ function VehicleForm({ onSubmit, defaultValues = {}, isPending }: any) {
     make: defaultValues.make || "",
     model: defaultValues.model || "",
     year: defaultValues.year || new Date().getFullYear(),
-    category: defaultValues.category || "Sedan",
-    dailyRate: defaultValues.dailyRate || 50,
+    category: defaultValues.category || "Normal",
+    dailyRate: defaultValues.dailyRate || 2000,
     seats: defaultValues.seats || 5,
     transmission: defaultValues.transmission || "Automatic",
     fuelType: defaultValues.fuelType || "Petrol",
@@ -247,7 +247,7 @@ function VehicleForm({ onSubmit, defaultValues = {}, isPending }: any) {
           </Select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="dailyRate">Daily Rate ($)</Label>
+          <Label htmlFor="dailyRate">Daily Rate (₹)</Label>
           <Input id="dailyRate" type="number" required value={formData.dailyRate} onChange={handleChange} />
         </div>
         <div className="space-y-2">

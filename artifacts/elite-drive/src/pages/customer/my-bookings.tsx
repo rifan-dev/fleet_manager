@@ -101,7 +101,7 @@ function BookingCard({ booking }: { booking: any }) {
             </div>
             <div>
               <p className="text-muted-foreground text-xs uppercase tracking-wider mb-1">Total Cost</p>
-              <p className="font-bold text-primary text-base">${booking.totalCost}</p>
+              <p className="font-bold text-primary text-base">₹{Number(booking.totalCost).toLocaleString("en-IN")}</p>
             </div>
           </div>
         </CardContent>

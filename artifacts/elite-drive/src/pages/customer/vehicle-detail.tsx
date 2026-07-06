@@ -98,8 +98,8 @@ export default function VehicleDetail() {
           <div className="sticky top-24 rounded-2xl border border-border bg-card shadow-lg overflow-hidden">
             <div className="p-6">
               <div className="flex items-baseline mb-2 text-primary">
-                <span className="text-2xl font-semibold mr-1">$</span>
-                <span className="text-5xl font-bold tracking-tight">{vehicle.dailyRate}</span>
+                <span className="text-2xl font-semibold mr-1">₹</span>
+                <span className="text-5xl font-bold tracking-tight">{Number(vehicle.dailyRate).toLocaleString("en-IN")}</span>
                 <span className="text-muted-foreground ml-2">/ day</span>
               </div>
               
@@ -122,7 +122,7 @@ export default function VehicleDetail() {
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Security Deposit</span>
-                  <span className="font-medium">$500</span>
+                  <span className="font-medium">₹10,000</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Insurance</span>

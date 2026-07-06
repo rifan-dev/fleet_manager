@@ -125,7 +125,7 @@ export default function BookVehicle() {
               <div className="space-y-3 text-sm mb-6">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Daily Rate</span>
-                  <span>${vehicle.dailyRate}</span>
+                  <span>₹{Number(vehicle.dailyRate).toLocaleString("en-IN")}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Duration</span>
@@ -139,7 +139,7 @@ export default function BookVehicle() {
 
               <div className="pt-4 border-t border-border/40 flex justify-between items-end mb-6">
                 <span className="font-semibold">Total Cost</span>
-                <span className="text-2xl font-bold text-primary">${totalCost}</span>
+                <span className="text-2xl font-bold text-primary">₹{totalCost.toLocaleString("en-IN")}</span>
               </div>
 
               <Button 

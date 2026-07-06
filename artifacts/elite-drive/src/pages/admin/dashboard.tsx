@@ -24,7 +24,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <SummaryCard 
             title="Total Revenue" 
-            value={`$${summary.totalRevenue.toLocaleString()}`} 
+            value={`₹${Number(summary.totalRevenue).toLocaleString("en-IN")}`} 
             icon={<DollarSign className="h-5 w-5 text-green-500" />} 
           />
           <SummaryCard 

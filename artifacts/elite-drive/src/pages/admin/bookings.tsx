@@ -78,7 +78,7 @@ export default function AdminBookings() {
                     <td className="py-3 px-4 text-muted-foreground">
                       {format(parseISO(b.pickupDate), "MMM d, yy")} - {format(parseISO(b.returnDate), "MMM d, yy")}
                     </td>
-                    <td className="py-3 px-4 font-semibold">${b.totalCost}</td>
+                    <td className="py-3 px-4 font-semibold">₹{Number(b.totalCost).toLocaleString("en-IN")}</td>
                     <td className="py-3 px-4"><StatusBadge status={b.status} /></td>
                     <td className="py-3 px-4 text-right">
                       <Select 
