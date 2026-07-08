@@ -3,7 +3,7 @@ import { useListVehicles } from "@workspace/api-client-react";
 import { VehicleCard } from "@/components/vehicle-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
+import { Search, Car } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const CATEGORIES = ["All", "Luxury", "Premium", "Normal"];
@@ -77,16 +77,30 @@ export default function Fleet() {
         </div>
       ) : !vehicles?.length ? (
         <div className="text-center py-24 bg-muted/20 rounded-xl border border-border/40 border-dashed">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
-            <Search className="h-6 w-6 text-muted-foreground" />
-          </div>
-          <h3 className="text-lg font-medium">No vehicles found</h3>
-          <p className="text-muted-foreground mt-1 max-w-sm mx-auto">
-            We couldn't find any vehicles matching your current filters. Try adjusting your search or category.
-          </p>
-          <Button variant="outline" className="mt-4" onClick={() => { setSearch(""); setCategory("All"); }}>
-            Clear Filters
-          </Button>
+          {search || category !== "All" ? (
+            <>
+              <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
+                <Search className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <h3 className="text-lg font-medium">No vehicles found</h3>
+              <p className="text-muted-foreground mt-1 max-w-sm mx-auto">
+                No vehicles match your current search or category filter.
+              </p>
+              <Button variant="outline" className="mt-4" onClick={() => { setSearch(""); setCategory("All"); }}>
+                Clear Filters
+              </Button>
+            </>
+          ) : (
+            <>
+              <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-muted mb-5">
+                <Car className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-xl font-semibold">No cars available yet</h3>
+              <p className="text-muted-foreground mt-2 max-w-sm mx-auto">
+                Our fleet is being set up. Please check back soon — exciting vehicles are coming your way!
+              </p>
+            </>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
