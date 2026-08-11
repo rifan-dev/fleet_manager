@@ -1,0 +1,9 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "AThcHN5dDn_DEDJ9loxB9"
+uri = "file://exports/elite-drive-nextjs.zip"
+type = "unspecified"
+title = "Elite Drive — Complete Next.js Source"
+description = "Complete Elite Drive source export including the Next.js frontend, API server, database schema, generated API client, OpenAPI files, workspace configuration, and setup README. Dependencies and build caches are excluded."
