@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useRoute, useLocation, Link } from "wouter";
-import { useGetVehicle } from "@workspace/api-client-react";
+import { getGetVehicleQueryKey, useGetVehicle } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -24,7 +24,7 @@ export default function BookVehicle() {
   const [returnDate, setReturnDate] = useState(format(dayAfter, "yyyy-MM-dd"));
   
   const { data: vehicle, isLoading } = useGetVehicle(id, {
-    query: { enabled: !!id }
+    query: { enabled: !!id, queryKey: getGetVehicleQueryKey(id) }
   });
 
   if (isLoading || !vehicle) {

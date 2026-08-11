@@ -1,5 +1,5 @@
 import { createContext, useContext, ReactNode, useState, useEffect } from "react";
-import { useGetMe, User } from "@workspace/api-client-react";
+import { getGetMeQueryKey, useGetMe, User } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface AuthContextType {
@@ -12,13 +12,20 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(localStorage.getItem("elite_drive_token"));
+  const [token, setToken] = useState<string | null>(null);
+  const [hasHydrated, setHasHydrated] = useState(false);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    setToken(window.localStorage.getItem("elite_drive_token"));
+    setHasHydrated(true);
+  }, []);
 
   const { data: user, isLoading, error } = useGetMe({ 
     query: { 
-      enabled: !!token, 
-      retry: false 
+      enabled: hasHydrated && !!token, 
+      retry: false,
+      queryKey: getGetMeQueryKey(),
     } 
   });
 

@@ -4,18 +4,18 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { MainLayout } from "@/components/layout/main-layout";
-import NotFound from "@/pages/not-found";
-import Login from "@/pages/auth/login";
-import Register from "@/pages/auth/register";
-import Fleet from "@/pages/customer/fleet";
-import VehicleDetail from "@/pages/customer/vehicle-detail";
-import BookVehicle from "@/pages/customer/book-vehicle";
-import ConfirmBooking from "@/pages/customer/confirm-booking";
-import MyBookings from "@/pages/customer/my-bookings";
-import Dashboard from "@/pages/admin/dashboard";
-import AdminVehicles from "@/pages/admin/vehicles";
-import AdminBookings from "@/pages/admin/bookings";
-import AdminUsers from "@/pages/admin/users";
+import NotFound from "@/legacy-pages/not-found";
+import Login from "@/legacy-pages/auth/login";
+import Register from "@/legacy-pages/auth/register";
+import Fleet from "@/legacy-pages/customer/fleet";
+import VehicleDetail from "@/legacy-pages/customer/vehicle-detail";
+import BookVehicle from "@/legacy-pages/customer/book-vehicle";
+import ConfirmBooking from "@/legacy-pages/customer/confirm-booking";
+import MyBookings from "@/legacy-pages/customer/my-bookings";
+import Dashboard from "@/legacy-pages/admin/dashboard";
+import AdminVehicles from "@/legacy-pages/admin/vehicles";
+import AdminBookings from "@/legacy-pages/admin/bookings";
+import AdminUsers from "@/legacy-pages/admin/users";
 
 const queryClient = new QueryClient();
 
@@ -83,7 +83,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+        <WouterRouter base="/">
           <AuthProvider>
             <Router />
           </AuthProvider>

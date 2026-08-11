@@ -1,6 +1,6 @@
 import { useRoute } from "wouter";
 import { Link } from "wouter";
-import { useGetVehicle } from "@workspace/api-client-react";
+import { getGetVehicleQueryKey, useGetVehicle } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Fuel, Settings, Users, Star, CheckCircle2, XCircle } from "lucide-react";
@@ -11,7 +11,7 @@ export default function VehicleDetail() {
   const id = parseInt(params?.id || "0", 10);
   
   const { data: vehicle, isLoading, error } = useGetVehicle(id, {
-    query: { enabled: !!id }
+    query: { enabled: !!id, queryKey: getGetVehicleQueryKey(id) }
   });
 
   if (isLoading) {

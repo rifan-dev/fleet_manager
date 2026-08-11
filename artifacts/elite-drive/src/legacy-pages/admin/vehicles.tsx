@@ -85,7 +85,7 @@ export default function AdminVehicles() {
                 <DialogTitle>Add New Vehicle</DialogTitle>
               </DialogHeader>
               <VehicleForm 
-                onSubmit={(data) => {
+                onSubmit={(data: any) => {
                   createMutation.mutate({ data }, {
                     onSuccess: () => {
                       queryClient.invalidateQueries({ queryKey: ["/api/vehicles"] });
@@ -171,7 +171,7 @@ export default function AdminVehicles() {
           {editingVehicle && (
             <VehicleForm 
               defaultValues={editingVehicle}
-              onSubmit={(data) => {
+                onSubmit={(data: any) => {
                 updateMutation.mutate({ id: editingVehicle.id, data }, {
                   onSuccess: () => {
                     queryClient.invalidateQueries({ queryKey: ["/api/vehicles"] });

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useRoute, useLocation, Link } from "wouter";
-import { useGetVehicle, useCreateBooking } from "@workspace/api-client-react";
+import { getGetVehicleQueryKey, useGetVehicle, useCreateBooking } from "@workspace/api-client-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -59,7 +59,7 @@ export default function ConfirmBooking() {
   const pickupDate = searchParams.get("pickup") || "";
   const returnDate = searchParams.get("return") || "";
 
-  const { data: vehicle, isLoading } = useGetVehicle(id, { query: { enabled: !!id } });
+  const { data: vehicle, isLoading } = useGetVehicle(id, { query: { enabled: !!id, queryKey: getGetVehicleQueryKey(id) } });
   const createBookingMutation = useCreateBooking();
 
   if (isLoading || !vehicle) return <div className="p-8 text-center">Loading...</div>;
