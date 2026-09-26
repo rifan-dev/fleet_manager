@@ -10,10 +10,7 @@ export type VehicleUpdateCategory = typeof VehicleUpdateCategory[keyof typeof Ve
 
 
 export const VehicleUpdateCategory = {
-  Sedan: 'Sedan',
-  SUV: 'SUV',
   Luxury: 'Luxury',
-  Sports: 'Sports',
-  Electric: 'Electric',
-  Van: 'Van',
+  Premium: 'Premium',
+  Normal: 'Normal',
 } as const;

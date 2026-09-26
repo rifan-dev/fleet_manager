@@ -553,7 +553,7 @@ components:
           type: integer
         category:
           type: string
-          enum: [Sedan, SUV, Luxury, Sports, Electric, Van]
+          enum: [Luxury, Premium, Normal]
         dailyRate:
           type: number
         seats:
@@ -598,7 +598,7 @@ components:
           type: integer
         category:
           type: string
-          enum: [Sedan, SUV, Luxury, Sports, Electric, Van]
+          enum: [Luxury, Premium, Normal]
         dailyRate:
           type: number
         seats:
@@ -638,7 +638,7 @@ components:
           type: integer
         category:
           type: string
-          enum: [Sedan, SUV, Luxury, Sports, Electric, Van]
+          enum: [Luxury, Premium, Normal]
         dailyRate:
           type: number
         seats:

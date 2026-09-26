@@ -91,7 +91,14 @@ export default function AdminVehicles() {
                       queryClient.invalidateQueries({ queryKey: ["/api/vehicles"] });
                       toast({ title: "Vehicle added" });
                       setIsAddOpen(false);
-                    }
+                    },
+                    onError: (error: any) => {
+                      toast({
+                        title: "Unable to add vehicle",
+                        description: error?.message || "Please check the vehicle details and try again.",
+                        variant: "destructive",
+                      });
+                    },
                   });
                 }} 
                 isPending={createMutation.isPending}

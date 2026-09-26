@@ -10,10 +10,7 @@ export type VehicleInputCategory = typeof VehicleInputCategory[keyof typeof Vehi
 
 
 export const VehicleInputCategory = {
-  Sedan: 'Sedan',
-  SUV: 'SUV',
   Luxury: 'Luxury',
-  Sports: 'Sports',
-  Electric: 'Electric',
-  Van: 'Van',
+  Premium: 'Premium',
+  Normal: 'Normal',
 } as const;
