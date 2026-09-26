@@ -22,6 +22,8 @@ export * from './loginInput';
 export * from './registerInput';
 export * from './registerInputRole';
 export * from './successResponse';
+export * from './uploadUrlRequest';
+export * from './uploadUrlResponse';
 export * from './user';
 export * from './userRole';
 export * from './userUpdate';

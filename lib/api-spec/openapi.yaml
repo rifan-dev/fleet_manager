@@ -19,7 +19,78 @@ tags:
     description: User management
   - name: dashboard
     description: Dashboard and analytics
+  - name: Storage
+    description: Vehicle image upload and serving
 paths:
+  /storage/uploads/request-url:
+    post:
+      operationId: requestUploadUrl
+      tags: [Storage]
+      summary: Request a presigned URL for a vehicle image upload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UploadUrlRequest"
+      responses:
+        "200":
+          description: Presigned upload URL generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadUrlResponse"
+        "400":
+          description: Invalid upload metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Failed to generate upload URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /storage/objects/{objectPath}:
+    get:
+      operationId: getStorageObject
+      tags: [Storage]
+      summary: Serve an uploaded vehicle image
+      parameters:
+        - name: objectPath
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Image content
+          content:
+            image/*:
+              schema:
+                type: string
+                format: binary
+        "404":
+          description: Image not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /healthz:
     get:
       operationId: healthCheck
@@ -472,6 +543,37 @@ components:
           type: string
       required:
         - success
+
+    UploadUrlRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        size:
+          type: integer
+          minimum: 1
+        contentType:
+          type: string
+          minLength: 1
+      required:
+        - name
+        - size
+        - contentType
+
+    UploadUrlResponse:
+      type: object
+      properties:
+        uploadURL:
+          type: string
+          format: uri
+        objectPath:
+          type: string
+        metadata:
+          $ref: "#/components/schemas/UploadUrlRequest"
+      required:
+        - uploadURL
+        - objectPath
 
     User:
       type: object

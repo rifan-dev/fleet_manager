@@ -5,6 +5,7 @@ import vehiclesRouter from "./vehicles";
 import bookingsRouter from "./bookings";
 import usersRouter from "./users";
 import dashboardRouter from "./dashboard";
+import storageRouter from "./storage";
 
 const router: IRouter = Router();
 
@@ -14,5 +15,6 @@ router.use("/vehicles", vehiclesRouter);
 router.use("/bookings", bookingsRouter);
 router.use("/users", usersRouter);
 router.use("/dashboard", dashboardRouter);
+router.use(storageRouter);
 
 export default router;
