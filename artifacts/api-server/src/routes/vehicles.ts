@@ -58,18 +58,36 @@ router.get("/", async (req, res) => {
 router.post("/", async (req, res) => {
   const parsed = CreateVehicleBody.safeParse(req.body);
   if (!parsed.success) {
-    return res.status(400).json({ error: "Invalid input" });
+    return res.status(400).json({ error: "Invalid input", details: parsed.error.issues });
   }
   const data = parsed.data;
 
-  const [vehicle] = await db.insert(vehiclesTable).values({
-    ...data,
-    dailyRate: String(data.dailyRate),
-    isAvailable: data.isAvailable ?? true,
-    rating: 4.5,
-  } as any).returning();
+  try {
+    const existing = await db
+      .select()
+      .from(vehiclesTable)
+      .where(eq(vehiclesTable.licensePlate, data.licensePlate.trim().toUpperCase()))
+      .limit(1);
 
-  return res.status(201).json(formatVehicle(vehicle));
+    if (existing.length > 0) {
+      return res.status(400).json({ error: `Vehicle with license plate "${data.licensePlate}" already exists.` });
+    }
+
+    const [vehicle] = await db.insert(vehiclesTable).values({
+      ...data,
+      licensePlate: data.licensePlate.trim().toUpperCase(),
+      dailyRate: String(data.dailyRate),
+      isAvailable: data.isAvailable ?? true,
+      rating: 4.5,
+    } as any).returning();
+
+    return res.status(201).json(formatVehicle(vehicle));
+  } catch (err: any) {
+    if (err?.code === "23505") {
+      return res.status(400).json({ error: `Vehicle with license plate "${data.licensePlate}" already exists.` });
+    }
+    return res.status(500).json({ error: "Failed to create vehicle" });
+  }
 });
 
 router.get("/:id", async (req, res) => {
@@ -87,18 +105,28 @@ router.patch("/:id", async (req, res) => {
   if (isNaN(id)) return res.status(400).json({ error: "Invalid id" });
 
   const parsed = UpdateVehicleBody.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: "Invalid input" });
+  if (!parsed.success) return res.status(400).json({ error: "Invalid input", details: parsed.error.issues });
 
   const data = parsed.data;
   const updateData: any = { ...data };
   if (data.dailyRate !== undefined) {
     updateData.dailyRate = String(data.dailyRate);
   }
+  if (data.licensePlate !== undefined) {
+    updateData.licensePlate = data.licensePlate.trim().toUpperCase();
+  }
 
-  const [vehicle] = await db.update(vehiclesTable).set(updateData).where(eq(vehiclesTable.id, id)).returning();
-  if (!vehicle) return res.status(404).json({ error: "Vehicle not found" });
+  try {
+    const [vehicle] = await db.update(vehiclesTable).set(updateData).where(eq(vehiclesTable.id, id)).returning();
+    if (!vehicle) return res.status(404).json({ error: "Vehicle not found" });
 
-  return res.json(formatVehicle(vehicle));
+    return res.json(formatVehicle(vehicle));
+  } catch (err: any) {
+    if (err?.code === "23505") {
+      return res.status(400).json({ error: `Vehicle with license plate "${data.licensePlate}" already exists.` });
+    }
+    return res.status(500).json({ error: "Failed to update vehicle" });
+  }
 });
 
 router.delete("/:id", async (req, res) => {

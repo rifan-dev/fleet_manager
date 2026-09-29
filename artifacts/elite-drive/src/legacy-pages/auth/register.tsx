@@ -26,8 +26,10 @@ export default function Register() {
     e.preventDefault();
     registerMutation.mutate({ data: { name, email, password, role } }, {
       onSuccess: (data) => {
-        setAuthToken(data.token);
-        if (data.user.role === "admin" || data.user.role === "staff") {
+        if (data?.token) {
+          setAuthToken(data.token);
+        }
+        if (data?.user?.role === "admin" || data?.user?.role === "staff") {
           setLocation("/dashboard");
         } else {
           setLocation("/fleet");

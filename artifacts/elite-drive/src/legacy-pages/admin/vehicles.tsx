@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { 
   useListVehicles, 
   useCreateVehicle, 
@@ -12,10 +12,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, Plus, Edit, Trash2, Upload, X } from "lucide-react";
+import { Search, Plus, Edit, Trash2, Upload, X, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -81,22 +82,26 @@ export default function AdminVehicles() {
             <DialogTrigger asChild>
               <Button><Plus className="h-4 w-4 mr-2" /> Add Vehicle</Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Add New Vehicle</DialogTitle>
+                <DialogDescription>
+                  Enter the vehicle details, specifications, and upload photos to add it to your fleet.
+                </DialogDescription>
               </DialogHeader>
               <VehicleForm 
+                onCancel={() => setIsAddOpen(false)}
                 onSubmit={(data: any) => {
                   createMutation.mutate({ data }, {
                     onSuccess: () => {
                       queryClient.invalidateQueries({ queryKey: ["/api/vehicles"] });
-                      toast({ title: "Vehicle added" });
+                      toast({ title: "Vehicle added successfully" });
                       setIsAddOpen(false);
                     },
                     onError: (error: any) => {
                       toast({
                         title: "Unable to add vehicle",
-                        description: error?.message || "Please check the vehicle details and try again.",
+                        description: error?.data?.error || error?.message || "Please check the vehicle details and try again.",
                         variant: "destructive",
                       });
                     },
@@ -172,20 +177,31 @@ export default function AdminVehicles() {
       </Card>
 
       <Dialog open={!!editingVehicle} onOpenChange={(o) => !o && setEditingVehicle(null)}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Vehicle</DialogTitle>
+            <DialogDescription>
+              Update specifications, availability, pricing, or vehicle imagery.
+            </DialogDescription>
           </DialogHeader>
           {editingVehicle && (
             <VehicleForm 
               defaultValues={editingVehicle}
-                onSubmit={(data: any) => {
+              onCancel={() => setEditingVehicle(null)}
+              onSubmit={(data: any) => {
                 updateMutation.mutate({ id: editingVehicle.id, data }, {
                   onSuccess: () => {
                     queryClient.invalidateQueries({ queryKey: ["/api/vehicles"] });
-                    toast({ title: "Vehicle updated" });
+                    toast({ title: "Vehicle updated successfully" });
                     setEditingVehicle(null);
-                  }
+                  },
+                  onError: (error: any) => {
+                    toast({
+                      title: "Unable to update vehicle",
+                      description: error?.data?.error || error?.message || "Please check the vehicle details and try again.",
+                      variant: "destructive",
+                    });
+                  },
                 });
               }} 
               isPending={updateMutation.isPending}
@@ -197,22 +213,25 @@ export default function AdminVehicles() {
   );
 }
 
-function VehicleForm({ onSubmit, defaultValues = {}, isPending }: any) {
+function VehicleForm({ onSubmit, onCancel, defaultValues = {}, isPending }: any) {
   const { toast } = useToast();
   const requestUploadUrl = useRequestUploadUrl();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [formData, setFormData] = useState({
     make: defaultValues.make || "",
     model: defaultValues.model || "",
-    year: defaultValues.year || new Date().getFullYear(),
+    year: defaultValues.year ? String(defaultValues.year) : String(new Date().getFullYear()),
     category: defaultValues.category || "Normal",
-    dailyRate: defaultValues.dailyRate || 2000,
-    seats: defaultValues.seats || 5,
+    dailyRate: defaultValues.dailyRate !== undefined && defaultValues.dailyRate !== null ? String(defaultValues.dailyRate) : "2000",
+    seats: defaultValues.seats !== undefined && defaultValues.seats !== null ? String(defaultValues.seats) : "5",
     transmission: defaultValues.transmission || "Automatic",
     fuelType: defaultValues.fuelType || "Petrol",
     licensePlate: defaultValues.licensePlate || "",
     imageUrl: defaultValues.imageUrl || "",
     description: defaultValues.description || "",
   });
+
   const [previewUrl, setPreviewUrl] = useState<string | null>(defaultValues.imageUrl || null);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -224,9 +243,17 @@ function VehicleForm({ onSubmit, defaultValues = {}, isPending }: any) {
     };
   }, [previewUrl]);
 
-  const handleChange = (e: any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
-    setFormData(prev => ({ ...prev, [id]: id === 'year' || id === 'dailyRate' || id === 'seats' ? Number(value) : value }));
+    setFormData(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleImageUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setFormData(prev => ({ ...prev, imageUrl: val }));
+    if (!previewUrl?.startsWith("blob:")) {
+      setPreviewUrl(val.trim() || null);
+    }
   };
 
   const handleSelectChange = (id: string, value: string) => {
@@ -238,17 +265,20 @@ function VehicleForm({ onSubmit, defaultValues = {}, isPending }: any) {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      toast({ title: "Invalid file", description: "Please choose an image file.", variant: "destructive" });
-      e.target.value = "";
+      toast({ title: "Invalid file", description: "Please choose an image file (PNG, JPG, WEBP, etc.).", variant: "destructive" });
+      if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
 
     if (file.size > 10 * 1024 * 1024) {
       toast({ title: "Image is too large", description: "Please choose an image smaller than 10 MB.", variant: "destructive" });
-      e.target.value = "";
+      if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
 
+    if (previewUrl?.startsWith("blob:")) {
+      URL.revokeObjectURL(previewUrl);
+    }
     const localPreview = URL.createObjectURL(file);
     setPreviewUrl(localPreview);
     setIsUploading(true);
@@ -282,121 +312,238 @@ function VehicleForm({ onSubmit, defaultValues = {}, isPending }: any) {
       setPreviewUrl(formData.imageUrl || null);
       toast({
         title: "Image upload failed",
-        description: error?.message || "Please try another image.",
+        description: error?.data?.error || error?.message || "Could not upload image from device.",
         variant: "destructive",
       });
+      if (fileInputRef.current) fileInputRef.current.value = "";
     } finally {
       setIsUploading(false);
-      e.target.value = "";
     }
   };
 
   const removeImage = () => {
+    if (previewUrl?.startsWith("blob:")) {
+      URL.revokeObjectURL(previewUrl);
+    }
     setFormData(prev => ({ ...prev, imageUrl: "" }));
     setPreviewUrl(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isUploading) return;
-    onSubmit(formData);
+
+    const parsedData = {
+      make: formData.make.trim(),
+      model: formData.model.trim(),
+      year: parseInt(formData.year) || new Date().getFullYear(),
+      category: formData.category,
+      dailyRate: parseFloat(formData.dailyRate) || 0,
+      seats: parseInt(formData.seats) || 5,
+      transmission: formData.transmission,
+      fuelType: formData.fuelType.trim() || "Petrol",
+      licensePlate: formData.licensePlate.trim().toUpperCase(),
+      imageUrl: formData.imageUrl.trim() || undefined,
+      description: formData.description.trim() || undefined,
+    };
+
+    onSubmit(parsedData);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+    <form onSubmit={handleSubmit} className="space-y-5 pt-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="make">Make</Label>
-          <Input id="make" required value={formData.make} onChange={handleChange} />
+          <Input 
+            id="make" 
+            required 
+            placeholder="e.g. BMW, Mercedes, Toyota" 
+            value={formData.make} 
+            onChange={handleChange} 
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="model">Model</Label>
-          <Input id="model" required value={formData.model} onChange={handleChange} />
+          <Input 
+            id="model" 
+            required 
+            placeholder="e.g. M5, C-Class, Camry" 
+            value={formData.model} 
+            onChange={handleChange} 
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="year">Year</Label>
-          <Input id="year" type="number" required value={formData.year} onChange={handleChange} />
+          <Input 
+            id="year" 
+            type="number" 
+            min="1900" 
+            max={new Date().getFullYear() + 2} 
+            required 
+            value={formData.year} 
+            onChange={handleChange} 
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="licensePlate">License Plate</Label>
-          <Input id="licensePlate" required value={formData.licensePlate} onChange={handleChange} />
+          <Input 
+            id="licensePlate" 
+            required 
+            placeholder="e.g. KA01AB1234" 
+            className="uppercase font-mono"
+            value={formData.licensePlate} 
+            onChange={handleChange} 
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="category">Category</Label>
           <Select value={formData.category} onValueChange={(v) => handleSelectChange('category', v)}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
             <SelectContent>
               {Object.values(VehicleCategory).map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="dailyRate">Daily Rate (₹)</Label>
-          <Input id="dailyRate" type="number" required value={formData.dailyRate} onChange={handleChange} />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="seats">Seats</Label>
-          <Input id="seats" type="number" required value={formData.seats} onChange={handleChange} />
-        </div>
-        <div className="space-y-2">
           <Label htmlFor="transmission">Transmission</Label>
           <Select value={formData.transmission} onValueChange={(v) => handleSelectChange('transmission', v)}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger><SelectValue placeholder="Select transmission" /></SelectTrigger>
             <SelectContent>
               {Object.values(VehicleTransmission).map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
         <div className="space-y-2">
+          <Label htmlFor="dailyRate">Daily Rate (₹)</Label>
+          <Input 
+            id="dailyRate" 
+            type="number" 
+            step="any" 
+            min="0" 
+            required 
+            placeholder="e.g. 2500" 
+            value={formData.dailyRate} 
+            onChange={handleChange} 
+          />
+        </div>
+        <div className="space-y-2">
           <Label htmlFor="fuelType">Fuel Type</Label>
-          <Input id="fuelType" required value={formData.fuelType} onChange={handleChange} />
+          <Input 
+            id="fuelType" 
+            required 
+            placeholder="e.g. Petrol, Diesel, Electric" 
+            value={formData.fuelType} 
+            onChange={handleChange} 
+          />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="imageUrl">Image URL</Label>
-          <Input id="imageUrl" value={formData.imageUrl} onChange={handleChange} />
+          <Label htmlFor="seats">Seats</Label>
+          <Input 
+            id="seats" 
+            type="number" 
+            min="1" 
+            max="30" 
+            required 
+            value={formData.seats} 
+            onChange={handleChange} 
+          />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="imageFile">Upload from device</Label>
-          <div className="flex items-center gap-2">
-            <Input
-              id="imageFile"
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              disabled={isUploading}
-              className="cursor-pointer"
-            />
-            {previewUrl && (
-              <Button type="button" variant="outline" size="icon" onClick={removeImage} aria-label="Remove image">
-                <X className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-          <p className="text-xs text-muted-foreground">Choose JPG, PNG, WEBP, or another image up to 10 MB.</p>
+          <Label htmlFor="imageUrl">Image Web URL (Optional)</Label>
+          <Input 
+            id="imageUrl" 
+            placeholder="https://images.unsplash.com/..." 
+            value={formData.imageUrl} 
+            onChange={handleImageUrlChange} 
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2 rounded-lg border border-border/60 bg-muted/20 p-4">
+        <Label htmlFor="imageFile" className="font-semibold text-sm">Upload Photo from Device</Label>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <Input
+            id="imageFile"
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            disabled={isUploading}
+            className="cursor-pointer bg-background"
+          />
           {previewUrl && (
-            <div className="relative h-28 w-full overflow-hidden rounded-md border bg-muted">
-              <img src={previewUrl} alt="Vehicle preview" className="h-full w-full object-cover" />
-              {isUploading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-background/70 text-sm font-medium">
-                  <Upload className="mr-2 h-4 w-4 animate-pulse" />
-                  Uploading image...
-                </div>
-              )}
-            </div>
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="sm" 
+              onClick={removeImage}
+              className="text-destructive hover:bg-destructive/10 shrink-0"
+            >
+              <X className="h-4 w-4 mr-1" /> Remove Image
+            </Button>
           )}
         </div>
+        <p className="text-xs text-muted-foreground">Supported formats: JPG, PNG, WEBP, GIF (up to 10 MB).</p>
+
+        {previewUrl && (
+          <div className="relative mt-3 h-40 w-full overflow-hidden rounded-md border bg-muted/60">
+            <img 
+              src={previewUrl} 
+              alt="Vehicle preview" 
+              className="h-full w-full object-cover" 
+              onError={() => {
+                toast({ title: "Image preview error", description: "Could not load image from the provided URL.", variant: "destructive" });
+              }}
+            />
+            {isUploading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-background/80 text-sm font-medium backdrop-blur-sm">
+                <Upload className="mr-2 h-4 w-4 animate-bounce text-primary" />
+                Uploading image...
+              </div>
+            )}
+          </div>
+        )}
       </div>
+
       <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
-        <Input id="description" value={formData.description} onChange={handleChange} />
+        <Label htmlFor="description">Description (Optional)</Label>
+        <Input 
+          id="description" 
+          placeholder="Brief description or highlight features..." 
+          value={formData.description} 
+          onChange={handleChange} 
+        />
       </div>
-      <DialogFooter>
+
+      <DialogFooter className="pt-2 gap-2 sm:gap-0">
+        {onCancel && (
+          <Button type="button" variant="outline" onClick={onCancel} disabled={isPending || isUploading}>
+            Cancel
+          </Button>
+        )}
         <Button type="submit" disabled={isPending || isUploading}>
-          {isUploading ? "Uploading image..." : isPending ? "Saving..." : "Save Vehicle"}
+          {isUploading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Uploading Image...
+            </>
+          ) : isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Saving Vehicle...
+            </>
+          ) : (
+            "Save Vehicle"
+          )}
         </Button>
       </DialogFooter>
     </form>
   );
 }
+
 // Stub for the missing import
 function Car(props: any) { return <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>; }

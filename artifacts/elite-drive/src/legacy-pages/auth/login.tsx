@@ -23,8 +23,10 @@ export default function Login() {
     e.preventDefault();
     loginMutation.mutate({ data: { email, password } }, {
       onSuccess: (data) => {
-        setAuthToken(data.token);
-        if (data.user.role === "admin" || data.user.role === "staff") {
+        if (data?.token) {
+          setAuthToken(data.token);
+        }
+        if (data?.user?.role === "admin" || data?.user?.role === "staff") {
           setLocation("/dashboard");
         } else {
           setLocation("/fleet");

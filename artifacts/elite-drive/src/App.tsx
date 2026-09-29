@@ -37,7 +37,7 @@ function ProtectedContent({ component: Component, adminOnly, params }: { compone
     return <Redirect to="/login" />;
   }
 
-  if (adminOnly && user.role === "customer") {
+  if (adminOnly && user?.role === "customer") {
     return <Redirect to="/fleet" />;
   }
 

@@ -357,9 +357,11 @@ export async function customFetch<T = unknown>(
       headers.set("authorization", `Bearer ${token}`);
     }
   } else if (!headers.has("authorization")) {
-    const token = localStorage.getItem("elite_drive_token");
-    if (token) {
-      headers.set("authorization", `Bearer ${token}`);
+    if (typeof localStorage !== "undefined") {
+      const token = localStorage.getItem("elite_drive_token");
+      if (token) {
+        headers.set("authorization", `Bearer ${token}`);
+      }
     }
   }
 
