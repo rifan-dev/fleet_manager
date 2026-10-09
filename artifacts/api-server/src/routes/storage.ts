@@ -94,7 +94,8 @@ router.post("/storage/uploads/request-url", async (req: Request, res: Response) 
 });
 
 router.put("/storage/local-upload/:fileId", (req: Request, res: Response) => {
-  const fileId = path.basename(req.params.fileId);
+  const rawFileId = req.params.fileId;
+  const fileId = path.basename(Array.isArray(rawFileId) ? rawFileId[0] : rawFileId);
   const filePath = path.join(UPLOADS_DIR, fileId);
   const writeStream = fs.createWriteStream(filePath);
 

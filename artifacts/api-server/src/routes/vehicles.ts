@@ -37,10 +37,15 @@ router.get("/", async (req, res) => {
   }
 
   let vehicles;
-  if (conditions.length > 0) {
-    vehicles = await db.select().from(vehiclesTable).where(and(...conditions));
-  } else {
-    vehicles = await db.select().from(vehiclesTable);
+  try {
+    if (conditions.length > 0) {
+      vehicles = await db.select().from(vehiclesTable).where(and(...conditions));
+    } else {
+      vehicles = await db.select().from(vehiclesTable);
+    }
+  } catch (err: any) {
+    req.log.error({ err, cause: err?.cause }, "Failed to fetch vehicles from DB");
+    return res.status(500).json({ error: "Failed to fetch vehicles", details: err?.message, cause: err?.cause?.message || String(err?.cause) });
   }
 
   if (params.search) {

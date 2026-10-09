@@ -600,9 +600,6 @@
   .h-24 {
     height: calc(var(--spacing) * 24);
   }
-  .h-28 {
-    height: calc(var(--spacing) * 28);
-  }
   .h-40 {
     height: calc(var(--spacing) * 40);
   }
@@ -1313,12 +1310,6 @@
   }
   .bg-background {
     background-color: hsl(var(--background));
-  }
-  .bg-background\/70 {
-    background-color: hsl(var(--background));
-    @supports (color: color-mix(in lab, red, red)) {
-      background-color: color-mix(in oklab, hsl(var(--background)) 70%, transparent);
-    }
   }
   .bg-background\/80 {
     background-color: hsl(var(--background));
